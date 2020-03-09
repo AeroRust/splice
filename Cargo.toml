@@ -1,9 +1,7 @@
 [package]
 name = "splice"
 version = "0.1.0"
-authors = ["czapek <czapek1337@gmail.com>"]
+authors = ["ÄroRust Working Group Members"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
