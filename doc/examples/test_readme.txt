@@ -22,3 +22,5 @@ test_d2.splc: min value
 test_d3.splc: eccentricity calculation
 test_d4.splc: FPU constants test
 test_d5.splc: Log debug level switching test
+
+/bin folder contains VM-executable files
