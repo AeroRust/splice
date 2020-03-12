@@ -1,0 +1,3 @@
+1. Create basic linker (compile assemble files into semi-binary format and append them into a single file)
+2. Create reduced-set specification for HL syntax (in-use aboard OPS-SAT)
+===== DONE =====
