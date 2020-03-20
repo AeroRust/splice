@@ -10,18 +10,32 @@
 * single-precision floating points, just like in C, i.e. 1E-15, or -9.0E4;
 
 ### types:
-* two types supported: **i32** (signed integers) and **f32** (single precision floating point)
+* two types supported explicitely: **i32** (signed integers) and **f32** (single precision floating point)
+* boolean type supported implicitely for "prerequisites" section (**preq**)
 
-
-### expressions:
-* basic arithmetic, transcendental and trigonometric operations and assignment operator
+### expressions and statements:
+* basic arithmetic, transcendental and trigonometric operations and assignment operator supported
 * Refer to Splice whitepaper for full list of operations supported by VM assembly
+* only boolean expressions allowed  in **preq** section
+* only assignment/math statements allowed  in **exec** section
 
 ### keywords (task list file only):
 * **group, task, data, freq, preq, exec, var, f32, i32, const, return**
 
 ### keywords (instrument definition file only):
 * **inst, queue, size, type, accs, shed, var, prop**
+
+### program structure (as described in whitepaper):
+* multiple groups and tasks (up to 16 groups with up to 16 taks in each group)
+* group can included multiple tasks
+* each group and each task has a name
+* tasks in the same group have read-only visibility of each other data
+* task structure:
+** data section
+** frequency section (how often to repeat the task: "once", at fixed interval or "always" - as fast as scheduler allows)
+** prerequisites section (what has to be true for task to run)
+** executive section (the actual task code)
+
 
 ## OPS-SAT instrument specifications
 * Camera, GPS and ADCS instruments are available at the moment - instrument definition file TBD
