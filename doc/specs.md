@@ -31,10 +31,10 @@
 * each group and each task has a name
 * tasks in the same group have read-only visibility of each other data
 * task structure:
-** data section
-** frequency section (how often to repeat the task: "once", at fixed interval or "always" - as fast as scheduler allows)
-** prerequisites section (what has to be true for task to run)
-** executive section (the actual task code)
+  * data section
+  * frequency section (how often to repeat the task: "once", at fixed interval or "always" - as fast as scheduler allows)
+  * prerequisites section (what has to be true for task to run)
+  * executive section (the actual task code)
 
 
 ## OPS-SAT instrument specifications
