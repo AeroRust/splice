@@ -1,0 +1,30 @@
+"+"				{ return ADD; }
+"-"				{ return SUB; }
+"*"				{ return MUL; }
+"/"				{ return DIV; }
+"("				{ return OP; }
+")"				{ return CP; }
+";"				{ return EOL; }
+","				{ return COMMA;}
+":"				{ return COLON;}
+"{" 			{ return BEGIN_TOKEN;}
+"}"				{ return END_TOKEN;}
+"i32"			{ return TYPE_INTEGER;}
+"f32"			{ return TYPE_FLOAT;}
+"var"			{ return VAR;}
+"freq"		{ return FREQ;}
+"preq"		{ return PREQ;}
+"data"		{ return DATA;}
+"exec"		{ return EXEC;}
+"task"		{ return TASK;}
+"return"	{ return RETURN;}
+"group"		{ return GROUP;}
+"="				{ return ASSIGN_OP;}
+">"				{ return GT;}
+"<"				{ return LT;}
+">="			{ return GE;}
+"<="			{ return LE;}
+"=="			{ return EQ;}
+"<>"			{ return NE;}
+[1-9][0-9]*|[0-9]	{ return INTEGER;}
+[a-z][a-z0-9]*	{ return IDENTIFIER;}
