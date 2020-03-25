@@ -1,4 +1,0 @@
-===== TASKS =====
-1. Create basic translator/linker in Rust (compile assemble files into semi-binary format and then append them into a single file)
-2. Create reduced-set specification for HL syntax (in-use aboard OPS-SAT)
-===== DONE  =====
