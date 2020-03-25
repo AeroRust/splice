@@ -5,7 +5,7 @@
 ### variables/constants:
 * variable or constant names: alphanumeric, starts with letter a-zA-Z[0-9a-zA-Z]*
 * only simple, non-compound typed variables are possible i.e
-* var variable1:i32 or var variable2:f32 are acceptable declarations, anything else isn't
+  * var variable1:i32 or var variable2:f32 are acceptable declarations, anything else isn't
 
 ### numeric literals:
 * positive and negative 32-bit integers, i.e -1, 0, 40001
@@ -19,7 +19,7 @@
 * basic arithmetic, transcendental and trigonometric operations and assignment operator supported
 * Refer to Splice whitepaper for full list of operations supported by VM assembly
 * only boolean expressions allowed  in **preq** section
-* only assignment/math statements allowed  in **exec** section
+* only assignment/math expressions allowed  in **exec** section
 
 ### keywords (task list file only):
 * **group, task, data, freq, preq, exec, var, f32, i32, const, return**
