@@ -395,8 +395,6 @@ fn read_source_file(filename: String)
 {
     //switch mode
     //for each line, process line
-    println!("Reading from file {}\n",filename);
-    //let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
     let mut mode:i32 = 0;
     let file = File::open(filename).unwrap();
     let reader = BufReader::new(file);
