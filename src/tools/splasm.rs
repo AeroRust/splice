@@ -8,6 +8,8 @@ use std::fs;
 use std::fs::File;
 use std::io::SeekFrom;
 use std::io::{BufRead, BufReader};
+use std::mem;
+
 
 
 /* ASSEMBLY OPCODES*/
@@ -30,6 +32,11 @@ const OP_TAN:i8 = 0x0D; // OPCODE|  PREFIX|  REG_A|  REG_B| tan/atan: REG_B = ta
 const OP_POW:i8 = 0x0E; // OPCODE|  PREFIX|  REG_A|  REG_B| power: log and roots can be done as well
 const OP_NOR:i8 = 0x0F; // OPCODE|   REG_A|  REG_B|  REG_C| REG_C = REG_A NOR NEG_B (or NAND if neccessary)
 
+//cmp operators
+const TSX_EQ:i8 = 0x0D; //task result is equal ...
+const TSX_NE:i8 = 0x0E; //task result is not equal to ...
+
+//prefixes
 const PRE_MOV_REG:i8 = 0x01;
 const PRE_MOV_RAM:i8 = 0x02;
 const PRE_MOV_IND:i8 = 0x03;
@@ -65,6 +72,103 @@ fn decode_address(p_addr: String)->i8
     let result:i8 = p_addr.parse().unwrap();
     return result;
 }
+
+fn decode_operator(p_oper: String)->i8
+{
+  match p_oper.as_str()
+  {
+     "ALU_EQ" => { return 0x01 }
+     "ALU_NE" => { return 0x02 }
+     "ALU_GT" => { return 0x03 }
+     "ALU_LT" => { return 0x04 }
+     "ALU_GE" => { return 0x05 }
+     "ALU_LE" => { return 0x06 } //lesser or equal
+     "FPU_EQ" => { return 0x07 } //same but for FPU
+     "FPU_NE" => { return 0x08 }
+     "FPU_GT" => { return 0x09 }
+     "FPU_LT" => { return 0x0A }
+     "TSX_EQ" => { return 0x0D } //task result is equal ...
+     "TSX_NE" => { return 0x0E } //task result is not equal to ...
+     _=> { return -1 }
+  }
+}
+
+fn decode_action(p_action_id: String)->i8
+{
+  match p_action_id.as_str()
+  {
+      "A_IMG_DO_JPG" => { return 0x07 }
+      "A_IMG_DO_RAW" => { return 0x08 }
+      "A_IMG_DO_BMP" => { return 0x09 }
+      "A_IMG_DO_PNG" => { return 0x0A }
+      "A_ADC_NADIR" =>  { return 0x05 }
+      "A_ADC_TOSUN" => { return 0x06 }
+      "A_ADC_BDOTT" => { return 0x07 }
+      "A_ADC_TRACK" => { return 0x08 }
+      "A_ADC_UNSET" => { return 0x09 }
+       _=> { return -1 }
+  }
+}
+
+fn decode_instrument(p_inst: String)->i8
+{
+    match p_inst.as_str()
+    {
+        "INST_ADC" => { return 0x01 }
+        "INST_GPS" => { return 0x02 }
+        "INST_IMG" => { return 0x03 }
+        "INST_FPU" => { return 0x04 } //load a constant to FPU register
+        "INST_SDR" => { return 0x05 } //not supported yet
+        "INST_NMF" => { return 0x06 } //set or get NMF-related parameter
+        "INST_VXM" => { return 0x07 } //set or get internal VM parameter
+      _=> { return -1 }
+    }
+}
+
+fn decode_parameter(p_param: String)->i8
+{
+  match p_param.as_str()
+  {
+      "P_ADC_MODE" => { return 0x01 }
+      "P_ADC_MAGX" => { return 0x02 }
+      "P_ADC_MAGY" => { return 0x03 }
+      "P_ADC_MAGZ" => { return 0x04 }
+      "P_ADC_SUNX" => { return 0x05 }
+      "P_ADC_SUNY" => { return 0x06 }
+      "P_ADC_SUNZ" => { return 0x07 }
+      "P_ADC_ANGX" => { return 0x08 }
+      "P_ADC_ANGY" => { return 0x09 }
+      "P_ADC_ANGZ" => { return 0x0A }
+      "P_ADC_QTNA" => { return 0x0B }
+      "P_ADC_QTNB" => { return 0x0C }
+      "P_ADC_QTNC" => { return 0x0D }
+      "P_ADC_QTND" => { return 0x0E }
+      "P_ADC_MTQX" => { return 0x0F }
+      "P_ADC_MTQY" => { return 0x10 }
+      "P_ADC_MTQZ" => { return 0x11 }
+      "P_IMG_GAIN_R"=> { return 0x01 }
+      "P_IMG_GAIN_G"=> { return 0x02 }
+      "P_IMG_GAIN_B"=> { return 0x03 }
+      "P_IMG_EXPOSE"=> { return 0x04 }
+      "P_IMG_STATUS"=> { return 0x05 }  //not to be used?
+      "P_IMG_NUMBER"=> { return 0x06 }
+      "P_GPS_LATT" => { return 0x01 }
+      "P_GPS_LONG" => { return 0x02 }
+      "P_GPS_ALTT" => { return 0x03 }
+      "P_GPS_TIME" => { return 0x04 }
+      "P_NMF_TIME" => { return 0x01 }
+      "P_VXM_TIME" => { return 0x01 }
+      "P_VXM_PRSN" => { return 0x02 }
+      "P_VXM_TLSC" => { return 0x03 }
+      "P_VXM_DBUG" => { return 0x04 }
+      "P_FPU_NIL" => { return 0x00 }
+      "P_FPU_ONE" => { return 0x01 }
+      "P_FPU_EXP" => { return 0x02 }
+      "P_FPU_PIE" => { return 0x03 }
+      _=> { return -1 }
+  }
+}
+
 
 fn decode_register(reg_id: String)->i8
 {
@@ -116,10 +220,10 @@ fn process_line(p_line: String, mut p_mode:i32)->i32
     match p_mode
     {
         0=>{
-            let group_id:i8 = line_values[0].to_string().parse().unwrap();
-            let task_id:i8 = line_values[1].to_string().parse().unwrap();
-            let freq:i8 = line_values[2].to_string().parse().unwrap();
-            let length:i8 = line_values[3].to_string().parse().unwrap();
+            let group_id:i8 = line_values[0].trim().to_string().parse().unwrap();
+            let task_id:i8 = line_values[1].trim().to_string().parse().unwrap();
+            let freq:i8 = line_values[2].trim().to_string().parse().unwrap();
+            let length:i8 = line_values[3].trim().to_string().parse().unwrap();
             let bytecode:i32 = pack4x8to32(group_id, task_id, freq, length);
             print!("{:x}",bytecode);
             p_mode = p_mode + 1;
@@ -135,6 +239,7 @@ fn process_line(p_line: String, mut p_mode:i32)->i32
                 "OP_HLT"=>{
                     let bytecode:i32 = pack4x8to32(OP_HLT, OP_NOP, OP_NOP, OP_NOP);
                     print!("{:x}",bytecode);
+                    p_mode = p_mode + 1;
                 }
                 "OP_LEA"=>{
                     let op_a:i8 = decode_register(line_values[1].trim().to_string());
@@ -158,20 +263,130 @@ fn process_line(p_line: String, mut p_mode:i32)->i32
                     let bytecode:i32 = pack4x8to32(OP_MOV, op_a, op_b, op_c);
                     print!("{:x}",bytecode);
                 }
+                "OP_CMP"=>{
+                    let op_a:i8 = decode_operator(line_values[1].trim().to_string());
+                    let op_c:i8 = decode_register(line_values[3].trim().to_string());
+                    let mut op_b:i8=0;
+                    if ((op_a == TSX_EQ) | (op_a == TSX_NE))
+                    {
+                        op_b = decode_address(line_values[2].trim().to_string());
+                    }
+                    else
+                    {
+                        op_b = decode_register(line_values[2].trim().to_string());
+                    }
+                    let bytecode:i32 = pack4x8to32(OP_CMP, op_a, op_b, op_c);
+                    print!("{:x}",bytecode);
+                }
+                "OP_GET"=>{
+                    let op_a:i8 = decode_instrument(line_values[1].trim().to_string());
+                    let op_b:i8 = decode_parameter(line_values[2].trim().to_string());
+                    let op_c:i8 = decode_register(line_values[3].trim().to_string());
+                    let bytecode:i32 = pack4x8to32(OP_GET, op_a, op_b, op_c);
+                    print!("{:x}",bytecode);
+                }
+                "OP_SET"=>{
+                    let op_a:i8 = decode_instrument(line_values[1].trim().to_string());
+                    let op_b:i8 = decode_parameter(line_values[2].trim().to_string());
+                    let op_c:i8 = decode_register(line_values[3].trim().to_string());
+                    let bytecode:i32 = pack4x8to32(OP_SET, op_a, op_b, op_c);
+                    print!("{:x}",bytecode);
+                }
+                "OP_ACT"=>{
+                    let op_a:i8 = decode_instrument(line_values[1].trim().to_string());
+                    let op_b:i8 = decode_action(line_values[2].trim().to_string());
+                    let op_c:i8 = decode_register(line_values[3].trim().to_string());
+                    let bytecode:i32 = pack4x8to32(OP_ACT, op_a, op_b, op_c);
+                    print!("{:x}",bytecode);
+                }
+                "OP_STR"=>{
+                    let op_a:i8 = decode_prefix(line_values[1].trim().to_string());
+                    let op_c:i8 = decode_register(line_values[2].trim().to_string());
+                    let bytecode:i32 = pack4x8to32(OP_STR, op_a, OP_NOP, op_c);
+                    print!("{:x}",bytecode);
+                }
+                "OP_FMA"=>{
+                    let op_a:i8 = decode_register(line_values[1].trim().to_string());
+                    let op_b:i8 = decode_register(line_values[2].trim().to_string());
+                    let op_c:i8 = decode_register(line_values[3].trim().to_string());
+                    let bytecode:i32 = pack4x8to32(OP_FMA, op_a, op_b, op_c);
+                    print!("{:x}",bytecode);
+                }
+                "OP_FSD"=>{
+                    let op_a:i8 = decode_register(line_values[1].trim().to_string());
+                    let op_b:i8 = decode_register(line_values[2].trim().to_string());
+                    let op_c:i8 = decode_register(line_values[3].trim().to_string());
+                    let bytecode:i32 = pack4x8to32(OP_FSD, op_a, op_b, op_c);
+                    print!("{:x}",bytecode);
+                }
+                "OP_SIN"=>{
+                    let op_a:i8 = decode_prefix(line_values[1].trim().to_string());
+                    let op_b:i8 = decode_register(line_values[2].trim().to_string());
+                    let op_c:i8 = decode_register(line_values[3].trim().to_string());
+                    let bytecode:i32 = pack4x8to32(OP_SIN, op_a, op_b, op_c);
+                    print!("{:x}",bytecode);
+                }
+                "OP_COS"=>{
+                    let op_a:i8 = decode_prefix(line_values[1].trim().to_string());
+                    let op_b:i8 = decode_register(line_values[2].trim().to_string());
+                    let op_c:i8 = decode_register(line_values[3].trim().to_string());
+                    let bytecode:i32 = pack4x8to32(OP_COS, op_a, op_b, op_c);
+                    print!("{:x}",bytecode);
+                }
+                "OP_TAN"=>{
+                    let op_a:i8 = decode_prefix(line_values[1].trim().to_string());
+                    let op_b:i8 = decode_register(line_values[2].trim().to_string());
+                    let op_c:i8 = decode_register(line_values[3].trim().to_string());
+                    let bytecode:i32 = pack4x8to32(OP_TAN, op_a, op_b, op_c);
+                    print!("{:x}",bytecode);
+                }
+                "OP_POW"=>{
+                    let op_a:i8 = decode_prefix(line_values[1].trim().to_string());
+                    let op_b:i8 = decode_register(line_values[2].trim().to_string());
+                    let op_c:i8 = decode_register(line_values[3].trim().to_string());
+                    let bytecode:i32 = pack4x8to32(OP_POW, op_a, op_b, op_c);
+                    print!("{:x}",bytecode);
+                }
+                "OP_NOR"=>{
+                    let op_a:i8 = decode_register(line_values[1].trim().to_string());
+                    let op_b:i8 = decode_register(line_values[2].trim().to_string());
+                    let op_c:i8 = decode_register(line_values[3].trim().to_string());
+                    let bytecode:i32 = pack4x8to32(OP_NOR, op_a, op_b, op_c);
+                    print!("{:x}",bytecode);
+                }
                 _=>{
                     //println!("Internal error: unrecognized opcode");
                 }
             }
-
+        }
+        2=>{
+            let l_value = &p_line[0..p_line.len()-1];
+            let s_value = &p_line[p_line.len()-1..p_line.len()];
+            //p_line.substring(0,line.length() - 1);
+            //suffix:String = p_line.charAt(line.length() - 1
+            match s_value
+            {
+                "i"=>{
+                    let bytecode:i32 = l_value.parse().unwrap();
+                    print!("{:x}",bytecode);
+                }
+                "f"=>{
+                    let fvalue:f32 = l_value.parse().unwrap();
+                    let mut bytecode:i32 = 0;
+                    unsafe {
+                        bytecode = mem::transmute::<f32,i32>(fvalue);
+                        print!("{:x}",bytecode);
+                    }
+                }
+                _=>{
+                    println!("Internal error: unrecognized data type");
+                }
+            }
         }
         _=>{
             println!("Internal error: unrecognized read mode");
         }
     }
-    //decode opcode
-    //decode operands
-    //for each data line
-    //decode value
     return p_mode;
 }
 
@@ -196,8 +411,8 @@ fn read_source_file(filename: String)
         }
         mode = process_line(line, mode);
         first = false;
-
     }
+    println!();
 }
 
 fn main()
