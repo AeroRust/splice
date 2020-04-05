@@ -1,16 +1,7 @@
-use std::cmp;
 use std::env;
-use std::fmt;
-use std::collections::HashMap;
-use std::time::{SystemTime, UNIX_EPOCH};
-use std::io::prelude::*;
-use std::fs;
 use std::fs::File;
-use std::io::SeekFrom;
 use std::io::{BufRead, BufReader};
 use std::mem;
-
-
 
 /* ASSEMBLY OPCODES*/
 const OP_NOP:i8 = 0x00; // No action
@@ -39,7 +30,7 @@ const TSX_NE:i8 = 0x0E; //task result is not equal to ...
 //prefixes
 const PRE_MOV_REG:i8 = 0x01;
 const PRE_MOV_RAM:i8 = 0x02;
-const PRE_MOV_IND:i8 = 0x03;
+//const PRE_MOV_IND:i8 = 0x03;
 
 fn pack4x8to32(a:i8, b:i8, c:i8, d:i8)->i32
 {
@@ -215,8 +206,7 @@ fn decode_register(reg_id: String)->i8
 fn process_line(p_line: String, mut p_mode:i32)->i32
 {
     //for each code line
-    //println!("{}", p_line);
-    let mut line_values:Vec<&str> = p_line.split(",").collect();
+    let line_values:Vec<&str> = p_line.split(",").collect();
     match p_mode
     {
         0=>{
@@ -252,11 +242,11 @@ fn process_line(p_line: String, mut p_mode:i32)->i32
                     let op_a:i8 = decode_prefix(line_values[1].trim().to_string());
                     let op_b:i8 = decode_register(line_values[2].trim().to_string());
                     let mut op_c:i8=0;
-                    if (op_a == PRE_MOV_REG)
+                    if op_a == PRE_MOV_REG
                     {
                         op_c = decode_register(line_values[3].trim().to_string());
                     }
-                    if (op_a == PRE_MOV_RAM)
+                    if op_a == PRE_MOV_RAM
                     {
                         op_c= decode_address(line_values[3].trim().to_string());
                     }
@@ -266,8 +256,8 @@ fn process_line(p_line: String, mut p_mode:i32)->i32
                 "OP_CMP"=>{
                     let op_a:i8 = decode_operator(line_values[1].trim().to_string());
                     let op_c:i8 = decode_register(line_values[3].trim().to_string());
-                    let mut op_b:i8=0;
-                    if ((op_a == TSX_EQ) | (op_a == TSX_NE))
+                    let mut op_b:i8;
+                    if (op_a == TSX_EQ) | (op_a == TSX_NE)
                     {
                         op_b = decode_address(line_values[2].trim().to_string());
                     }
@@ -372,9 +362,8 @@ fn process_line(p_line: String, mut p_mode:i32)->i32
                 }
                 "f"=>{
                     let fvalue:f32 = l_value.parse().unwrap();
-                    let mut bytecode:i32 = 0;
                     unsafe {
-                        bytecode = mem::transmute::<f32,i32>(fvalue);
+                        let bytecode:i32 = mem::transmute::<f32,i32>(fvalue);
                         print!("{:x}",bytecode);
                     }
                 }
@@ -401,10 +390,11 @@ fn read_source_file(filename: String)
 
     // Read the file line by line using the lines() iterator from std::io::BufRead.
     let mut first:bool = true;
-    for (index, line) in reader.lines().enumerate() {
+    for (_, line) in reader.lines().enumerate() {
         let line = line.unwrap(); // Ignore errors.
         // Show the line and its number.
-        if (!first) {
+        if !first
+        {
             print!(",");
         }
         mode = process_line(line, mode);
