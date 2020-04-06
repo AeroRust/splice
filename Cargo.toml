@@ -1,7 +1,7 @@
 [package]
 name = "splice"
 version = "0.1.0"
-authors = ["ÄroRust Working Group Members"]
+authors = ["Dennis Silin <d_silin@yahoo.com>","ÄroRust Working Group Members"]
 edition = "2018"
 
 [dependencies]
